@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="p-5 mb-4 bg-body-tertiary rounded-3">
+  <div class="container-fluid py-3">
+    <h1 class="display-6 fw-bold">Library Management System</h1>
+    <p class="col-md-9 fs-5">
+      Manage books, users, issuing/returns, fines, reservations, notifications, recommendations, and analytics.
+    </p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}">Get Started</a>
+  </div>
+</div>
+{% endblock %}

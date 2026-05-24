@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Manage Books</h3>
+<div class="card p-3 mb-4">
+    <h5>Add New Book</h5>
+    <form method="post" action="{{ url_for('admin.add_book') }}" class="row g-2">
+        <div class="col-md-3"><input name="title" class="form-control" placeholder="Title" required></div>
+        <div class="col-md-2"><input name="author" class="form-control" placeholder="Author" required></div>
+        <div class="col-md-2"><input name="category" class="form-control" placeholder="Category" required></div>
+        <div class="col-md-2"><input name="isbn" class="form-control" placeholder="ISBN" required></div>
+        <div class="col-md-1"><input name="copies" type="number" class="form-control" min="1" value="1"></div>
+        <div class="col-md-2"><button class="btn btn-success w-100">Add</button></div>
+    </form>
+</div>
+
+<form class="row g-2 mb-3" method="get">
+    <div class="col-md-4"><input name="search" value="{{ search }}" class="form-control" placeholder="Search title or author"></div>
+    <div class="col-md-3"><input name="category" value="{{ category }}" class="form-control" placeholder="Filter by category"></div>
+    <div class="col-md-3">
+        <select name="sort" class="form-select">
+            <option value="title" {% if sort == "title" %}selected{% endif %}>Sort by title</option>
+            <option value="author" {% if sort == "author" %}selected{% endif %}>Sort by author</option>
+            <option value="copies" {% if sort == "copies" %}selected{% endif %}>Sort by available copies</option>
+        </select>
+    </div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Apply</button></div>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>ISBN</th><th>Available</th><th>Code</th><th>Actions</th></tr></thead>
+        <tbody>
+        {% for b in books %}
+        <tr>
+            <td>{{ b.title }}</td>
+            <td>{{ b.author }}</td>
+            <td>{{ b.category }}</td>
+            <td>{{ b.isbn }}</td>
+            <td>{{ b.available_copies }} / {{ b.total_copies }}</td>
+            <td><small>{{ b.barcode }} | {{ b.qr_code }}</small></td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#edit{{ b.id }}">Edit</button>
+                <form method="post" action="{{ url_for('admin.delete_book', book_id=b.id) }}" class="d-inline">
+                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+        <tr class="collapse" id="edit{{ b.id }}">
+            <td colspan="7">
+                <form method="post" action="{{ url_for('admin.update_book', book_id=b.id) }}" class="row g-2">
+                    <div class="col-md-3"><input name="title" value="{{ b.title }}" class="form-control" required></div>
+                    <div class="col-md-2"><input name="author" value="{{ b.author }}" class="form-control" required></div>
+                    <div class="col-md-2"><input name="category" value="{{ b.category }}" class="form-control" required></div>
+                    <div class="col-md-2"><input name="copies" type="number" value="{{ b.total_copies }}" min="1" class="form-control"></div>
+                    <div class="col-md-2"><button class="btn btn-sm btn-primary">Save</button></div>
+                </form>
+            </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-muted">No books found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+body {
+  min-height: 100vh;
+}
+
+.stat-card {
+  border-left: 4px solid #0d6efd;
+}

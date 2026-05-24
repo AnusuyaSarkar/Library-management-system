@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Dashboard</h3>
+<div class="row g-3 mb-4">
+    <div class="col-md-3"><div class="card p-3 stat-card"><h6>Total Books</h6><h3>{{ total_books }}</h3></div></div>
+    <div class="col-md-3"><div class="card p-3 stat-card"><h6>Issued Books</h6><h3>{{ issued_books }}</h3></div></div>
+    <div class="col-md-3"><div class="card p-3 stat-card"><h6>Active Users</h6><h3>{{ active_users }}</h3></div></div>
+    <div class="col-md-3"><div class="card p-3 stat-card"><h6>Your Overdues</h6><h3>{{ overdue_count }}</h3></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card p-3 h-100">
+            <h5>Notifications</h5>
+            <ul class="list-group list-group-flush">
+                {% for n in notifications %}
+                <li class="list-group-item">{{ n.message }} <small class="text-muted d-block">{{ n.created_at.strftime("%Y-%m-%d %H:%M") }}</small></li>
+                {% else %}
+                <li class="list-group-item text-muted">No notifications</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card p-3 h-100">
+            <h5>Recommended Books</h5>
+            <ul class="list-group list-group-flush">
+                {% for book in recommendations %}
+                <li class="list-group-item">{{ book.title }} - {{ book.author }} <span class="badge text-bg-secondary">{{ book.category }}</span></li>
+                {% else %}
+                <li class="list-group-item text-muted">No recommendations available.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-12">
+        <div class="card p-3">
+            <h5>AI Assistant</h5>
+            <p class="text-muted mb-2">
+                Ask common questions like <em>"Is Java Basics 101 available?"</em> or
+                <em>"Do you have Mystery Starter?"</em>
+            </p>
+            <div class="input-group">
+                <input
+                    type="text"
+                    id="aiQueryInput"
+                    class="form-control"
+                    placeholder="Type your question..."
+                >
+                <button class="btn btn-primary" type="button" id="askAiBtn">Ask AI</button>
+            </div>
+            <div id="aiResponseBox" class="mt-3 small"></div>
+        </div>
+    </div>
+</div>
+
+{% if analytics %}
+<div class="row g-4 mt-1">
+    <div class="col-lg-6">
+        <div class="card p-3">
+            <h5>Most Borrowed Books</h5>
+            <ul class="mb-0">
+                {% for row in analytics.most_borrowed %}
+                    <li>{{ row[0] }} ({{ row[1] }} issues)</li>
+                {% else %}
+                    <li class="text-muted">No issue data yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card p-3">
+            <h5>Monthly Usage Trends</h5>
+            <ul class="mb-0">
+                {% for row in analytics.monthly_usage %}
+                    <li>{{ row[0] }}: {{ row[1] }} issues</li>
+                {% else %}
+                    <li class="text-muted">No monthly usage data yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+(() => {
+    const askBtn = document.getElementById("askAiBtn");
+    const queryInput = document.getElementById("aiQueryInput");
+    const responseBox = document.getElementById("aiResponseBox");
+
+    const renderAvailability = (item) => {
+        const badgeClass = item.is_available ? "text-bg-success" : "text-bg-danger";
+        const status = item.is_available ? "Available" : "Not Available";
+        return `
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>${item.title} - ${item.author}</span>
+                <span class="badge ${badgeClass}">${status} (${item.available_copies} copies)</span>
+            </li>
+        `;
+    };
+
+    const renderData = (data) => {
+        if (!Array.isArray(data) || data.length === 0) return "";
+        const hasAvailabilityShape = data.some((item) => Object.prototype.hasOwnProperty.call(item, "is_available"));
+        if (hasAvailabilityShape) {
+            return `<ul class="list-group mt-2">${data.map(renderAvailability).join("")}</ul>`;
+        }
+        return `<pre class="bg-body-secondary p-2 rounded mt-2 mb-0">${JSON.stringify(data, null, 2)}</pre>`;
+    };
+
+    const askAI = async () => {
+        const query = queryInput.value.trim();
+        if (!query) {
+            responseBox.innerHTML = '<div class="text-danger">Please enter a question.</div>';
+            return;
+        }
+        askBtn.disabled = true;
+        askBtn.textContent = "Asking...";
+        responseBox.innerHTML = '<div class="text-muted">Thinking...</div>';
+        try {
+            const res = await fetch("/ai/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ query }),
+            });
+            const payload = await res.json();
+            if (!payload.ok) {
+                responseBox.innerHTML = `<div class="text-danger">${payload.error || "Unable to get response."}</div>`;
+                return;
+            }
+            const reply = payload.response?.reply || "No response.";
+            const dataHtml = renderData(payload.response?.data);
+            responseBox.innerHTML = `<div><strong>${reply}</strong></div>${dataHtml}`;
+        } catch (error) {
+            responseBox.innerHTML = '<div class="text-danger">Something went wrong while contacting AI.</div>';
+        } finally {
+            askBtn.disabled = false;
+            askBtn.textContent = "Ask AI";
+        }
+    };
+
+    askBtn?.addEventListener("click", askAI);
+    queryInput?.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") askAI();
+    });
+})();
+</script>
+{% endblock %}

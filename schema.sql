@@ -1,0 +1,64 @@
+CREATE TABLE user (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username VARCHAR(80) UNIQUE NOT NULL,
+    email VARCHAR(120) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'user',
+    is_active BOOLEAN DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE book (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title VARCHAR(200) NOT NULL,
+    author VARCHAR(120) NOT NULL,
+    category VARCHAR(120) NOT NULL,
+    isbn VARCHAR(40) UNIQUE NOT NULL,
+    total_copies INTEGER NOT NULL DEFAULT 1,
+    available_copies INTEGER NOT NULL DEFAULT 1,
+    barcode VARCHAR(100) NOT NULL,
+    qr_code VARCHAR(100) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE issue_record (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    issued_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    due_date DATETIME NOT NULL,
+    returned_at DATETIME,
+    fine_amount FLOAT DEFAULT 0.0,
+    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (book_id) REFERENCES book(id)
+);
+
+CREATE TABLE reservation (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'active',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (book_id) REFERENCES book(id)
+);
+
+CREATE TABLE notification (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    message VARCHAR(255) NOT NULL,
+    is_read BOOLEAN DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+CREATE TABLE review (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    book_id INTEGER NOT NULL,
+    rating INTEGER NOT NULL,
+    comment TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id),
+    FOREIGN KEY (book_id) REFERENCES book(id)
+);

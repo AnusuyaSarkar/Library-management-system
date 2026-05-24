@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Book Catalog</h3>
+<form class="row g-2 mb-3" method="get">
+    <div class="col-md-5"><input name="search" class="form-control" value="{{ search }}" placeholder="Search by title, author, category"></div>
+    <div class="col-md-3"><input name="category" class="form-control" value="{{ category }}" placeholder="Filter by category"></div>
+    <div class="col-md-2">
+        <select name="sort" class="form-select">
+            <option value="title" {% if sort == "title" %}selected{% endif %}>Title</option>
+            <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest</option>
+            <option value="availability" {% if sort == "availability" %}selected{% endif %}>Availability</option>
+        </select>
+    </div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Apply</button></div>
+</form>
+
+<div class="row g-3">
+{% for b in books %}
+<div class="col-md-6 col-lg-4">
+    <div class="card h-100">
+        <div class="card-body">
+            <h5 class="card-title">{{ b.title }}</h5>
+            <p class="card-text mb-1"><strong>Author:</strong> {{ b.author }}</p>
+            <p class="card-text mb-1"><strong>Category:</strong> {{ b.category }}</p>
+            <p class="card-text mb-2"><small>Available: {{ b.available_copies }}/{{ b.total_copies }}</small></p>
+
+            {% if b.available_copies > 0 %}
+            <form method="post" action="{{ url_for('user.issue', book_id=b.id) }}" class="d-inline">
+                <button class="btn btn-sm btn-success">Issue</button>
+            </form>
+            {% else %}
+            <form method="post" action="{{ url_for('user.reserve', book_id=b.id) }}" class="d-inline">
+                <button class="btn btn-sm btn-warning">Reserve</button>
+            </form>
+            {% endif %}
+
+            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#review{{ b.id }}">Review</button>
+            <div class="collapse mt-2" id="review{{ b.id }}">
+                <form method="post" action="{{ url_for('user.add_review', book_id=b.id) }}">
+                    <div class="mb-2">
+                        <select name="rating" class="form-select form-select-sm">
+                            <option value="5">5 - Excellent</option>
+                            <option value="4">4 - Good</option>
+                            <option value="3">3 - Average</option>
+                            <option value="2">2 - Poor</option>
+                            <option value="1">1 - Bad</option>
+                        </select>
+                    </div>
+                    <textarea name="comment" class="form-control form-control-sm mb-2" rows="2" placeholder="Write a comment"></textarea>
+                    <button class="btn btn-sm btn-outline-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<p class="text-muted">No books found.</p>
+{% endfor %}
+</div>
+{% endblock %}

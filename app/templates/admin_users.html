@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<h3 class="mb-3">Manage Users</h3>
+<div class="table-responsive">
+    <table class="table table-bordered">
+        <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th></tr></thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.email }}</td>
+                <td><span class="badge text-bg-secondary">{{ u.role }}</span></td>
+                <td>{{ "Active" if u.is_active else "Inactive" }}</td>
+                <td>{{ u.created_at.strftime("%Y-%m-%d") }}</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="5" class="text-muted">No users found.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
