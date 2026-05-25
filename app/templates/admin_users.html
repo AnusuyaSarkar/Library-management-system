@@ -1,9 +1,27 @@
 {% extends "base.html" %}
 {% block content %}
 <h3 class="mb-3">Manage Users</h3>
+
+<div class="card p-3 mb-4">
+    <h5 class="mb-3">Add New User</h5>
+    <form method="post" action="{{ url_for('admin.add_user') }}" class="row g-2">
+        <div class="col-md-3"><input name="username" class="form-control" placeholder="Username" required></div>
+        <div class="col-md-3"><input name="email" type="email" class="form-control" placeholder="Email" required></div>
+        <div class="col-md-2"><input name="password" type="password" class="form-control" placeholder="Password" minlength="6" required></div>
+        <div class="col-md-2">
+            <select name="role" class="form-select">
+                <option value="user">User</option>
+                <option value="manager">Manager</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+        <div class="col-md-2"><button class="btn btn-success w-100">Add User</button></div>
+    </form>
+</div>
+
 <div class="table-responsive">
-    <table class="table table-bordered">
-        <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th></tr></thead>
+    <table class="table table-bordered align-middle">
+        <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
         <tbody>
         {% for u in users %}
             <tr>
@@ -12,9 +30,37 @@
                 <td><span class="badge text-bg-secondary">{{ u.role }}</span></td>
                 <td>{{ "Active" if u.is_active else "Inactive" }}</td>
                 <td>{{ u.created_at.strftime("%Y-%m-%d") }}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#edit{{ u.id }}">Edit</button>
+                    <form method="post" action="{{ url_for('admin.delete_user', user_id=u.id) }}" class="d-inline">
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            <tr class="collapse" id="edit{{ u.id }}">
+                <td colspan="6">
+                    <form method="post" action="{{ url_for('admin.update_user', user_id=u.id) }}" class="row g-2">
+                        <div class="col-md-3"><input name="username" value="{{ u.username }}" class="form-control" required></div>
+                        <div class="col-md-3"><input name="email" type="email" value="{{ u.email }}" class="form-control" required></div>
+                        <div class="col-md-2">
+                            <select name="role" class="form-select">
+                                <option value="user" {% if u.role == "user" %}selected{% endif %}>User</option>
+                                <option value="manager" {% if u.role == "manager" %}selected{% endif %}>Manager</option>
+                                <option value="admin" {% if u.role == "admin" %}selected{% endif %}>Admin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-center">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="is_active" id="active{{ u.id }}" {% if u.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="active{{ u.id }}">Active</label>
+                            </div>
+                        </div>
+                        <div class="col-md-2"><button class="btn btn-sm btn-primary w-100">Save</button></div>
+                    </form>
+                </td>
             </tr>
         {% else %}
-            <tr><td colspan="5" class="text-muted">No users found.</td></tr>
+            <tr><td colspan="6" class="text-muted">No users found.</td></tr>
         {% endfor %}
         </tbody>
     </table>

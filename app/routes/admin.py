@@ -129,3 +129,81 @@ def delete_book(book_id):
 def users():
     users_list = User.query.order_by(User.created_at.desc()).all()
     return render_template("admin_users.html", users=users_list)
+
+
+@admin_bp.route("/users/add", methods=["POST"])
+@login_required
+@admin_required
+def add_user():
+    username = request.form.get("username", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+    role = request.form.get("role", "user").strip().lower()
+
+    if role not in {"admin", "manager", "user"}:
+        role = "user"
+
+    if not username or not email or len(password) < 6:
+        flash("Provide valid user details. Password must be at least 6 chars.", "danger")
+        return redirect(url_for("admin.users"))
+
+    exists = User.query.filter((User.username == username) | (User.email == email)).first()
+    if exists:
+        flash("Username or email already exists.", "warning")
+        return redirect(url_for("admin.users"))
+
+    user = User(username=username, email=email, role=role)
+    user.set_password(password)
+    db.session.add(user)
+    db.session.commit()
+    flash("User added successfully.", "success")
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/<int:user_id>/update", methods=["POST"])
+@login_required
+@admin_required
+def update_user(user_id):
+    user = User.query.get_or_404(user_id)
+    username = request.form.get("username", "").strip()
+    email = request.form.get("email", "").strip().lower()
+    role = request.form.get("role", user.role).strip().lower()
+    is_active = request.form.get("is_active") == "on"
+
+    if role not in {"admin", "manager", "user"}:
+        role = user.role
+
+    if not username or not email:
+        flash("Username and email are required.", "danger")
+        return redirect(url_for("admin.users"))
+
+    exists = User.query.filter(
+        (User.id != user.id) & ((User.username == username) | (User.email == email))
+    ).first()
+    if exists:
+        flash("Another user already uses that username or email.", "warning")
+        return redirect(url_for("admin.users"))
+
+    user.username = username
+    user.email = email
+    user.role = role
+    user.is_active = is_active
+    db.session.commit()
+    flash("User updated.", "success")
+    return redirect(url_for("admin.users"))
+
+
+@admin_bp.route("/users/<int:user_id>/delete", methods=["POST"])
+@login_required
+@admin_required
+def delete_user(user_id):
+    user = User.query.get_or_404(user_id)
+
+    if user.id == current_user.id:
+        flash("You cannot delete your own account.", "warning")
+        return redirect(url_for("admin.users"))
+
+    db.session.delete(user)
+    db.session.commit()
+    flash("User deleted.", "info")
+    return redirect(url_for("admin.users"))
