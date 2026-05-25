@@ -7,7 +7,12 @@
     <form method="post" action="{{ url_for('admin.add_user') }}" class="row g-2">
         <div class="col-md-3"><input name="username" class="form-control" placeholder="Username" required></div>
         <div class="col-md-3"><input name="email" type="email" class="form-control" placeholder="Email" required></div>
-        <div class="col-md-2"><input name="password" type="password" class="form-control" placeholder="Password" minlength="6" required></div>
+        <div class="col-md-2">
+            <div class="input-group">
+                <input id="newUserPassword" name="password" type="password" class="form-control" placeholder="Password" minlength="6" required>
+                <button class="btn btn-outline-secondary" type="button" id="toggleNewUserPassword">Show</button>
+            </div>
+        </div>
         <div class="col-md-2">
             <select name="role" class="form-select">
                 <option value="user">User</option>
@@ -65,4 +70,21 @@
         </tbody>
     </table>
 </div>
+
+<script>
+(function () {
+    const passwordInput = document.getElementById("newUserPassword");
+    const toggleButton = document.getElementById("toggleNewUserPassword");
+
+    if (!passwordInput || !toggleButton) {
+        return;
+    }
+
+    toggleButton.addEventListener("click", () => {
+        const isHidden = passwordInput.type === "password";
+        passwordInput.type = isHidden ? "text" : "password";
+        toggleButton.textContent = isHidden ? "Hide" : "Show";
+    });
+})();
+</script>
 {% endblock %}
