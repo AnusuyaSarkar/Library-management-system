@@ -24,6 +24,11 @@
     </form>
 </div>
 
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4"><input name="search" value="{{ search if search is defined else '' }}" class="form-control" placeholder="Search by username"></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Search</button></div>
+</form>
+
 <div class="table-responsive">
     <table class="table table-bordered align-middle">
         <thead><tr><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>

@@ -127,8 +127,12 @@ def delete_book(book_id):
 @login_required
 @admin_required
 def users():
-    users_list = User.query.order_by(User.created_at.desc()).all()
-    return render_template("admin_users.html", users=users_list)
+    search = request.args.get("search", "").strip()
+    query = User.query
+    if search:
+        query = query.filter(User.username.ilike(f"%{search}%"))
+    users_list = query.order_by(User.created_at.desc()).all()
+    return render_template("admin_users.html", users=users_list, search=search)
 
 
 @admin_bp.route("/users/add", methods=["POST"])
